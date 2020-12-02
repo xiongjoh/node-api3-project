@@ -1,4 +1,5 @@
 const express = require('express');
+const userDb = require('./userDb')
 
 const router = express.Router();
 
@@ -11,7 +12,13 @@ router.post('/:id/posts', (req, res) => {
 });
 
 router.get('/', (req, res) => {
-  // do your magic!
+  userDb.get()
+  .then(results => {
+    res.status(200).json(results)
+  })
+  .catch(err => {
+    res.status(500).json({message:err.message})
+  })
 });
 
 router.get('/:id', (req, res) => {
@@ -29,6 +36,7 @@ router.delete('/:id', (req, res) => {
 router.put('/:id', (req, res) => {
   // do your magic!
 });
+
 
 //custom middleware
 
