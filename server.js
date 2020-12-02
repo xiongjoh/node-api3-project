@@ -6,6 +6,7 @@ const middleware = require('./middlewares/middlewares')
 const server = express();
 
 server.use(logger)
+server.use(express.json())
 
 //custom middleware
 
