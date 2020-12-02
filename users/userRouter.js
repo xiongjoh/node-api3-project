@@ -11,7 +11,7 @@ router.post('/', middlewares.validateUser, async (req, res) => {
     res.status(201).json(newUser)
   }
   catch(error) {
-    res.status(500).json({message:error.message})
+    next(error)
   }
 
 });
@@ -23,7 +23,7 @@ router.post('/:id/posts', middlewares.validateUserId, middlewares.validatePost, 
     res.status(201).json(newPost)
   }
   catch(error) {
-    res.status(500).json({message:error.message})
+    next(error)
   }
 });
 
@@ -32,8 +32,8 @@ router.get('/', (req, res) => {
   .then(results => {
     res.status(200).json(results)
   })
-  .catch(err => {
-    res.status(500).json({message:err.message})
+  .catch(error => {
+    next(error)
   })
 });
 
@@ -48,7 +48,7 @@ router.get('/:id/posts', middlewares.validateUserId, (req, res) => {
     res.status(200).json(results)
   })
   .catch(error => {
-    res.status(500).json({message:error.message})
+    next(error)
   })
 });
 
@@ -59,7 +59,7 @@ router.delete('/:id', middlewares.validateUserId, async (req, res) => {
     res.json(req.userInfo)
   }
   catch(error) {
-    res.status(500).json({message:error.message})
+    next(error)
   }
 });
 
@@ -74,9 +74,16 @@ router.put('/:id', middlewares.validateUserId, middlewares.validateUser, (req, r
     }
   })
   .catch(error => {
-    res.status(500).json({message:message.error})
+    next(error)
   })
 });
+
+router.use((err, req, res, next) => {
+  res.status(500).json({
+    message:'Something has happened, unable to access database',
+    error: err.message
+  })
+})
 
 
 module.exports = router;
