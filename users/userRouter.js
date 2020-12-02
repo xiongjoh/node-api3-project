@@ -1,10 +1,11 @@
 const express = require('express');
 const userDb = require('./userDb')
 const postDb = require('../posts/postDb')
+const middlewares = require('../middlewares/middlewares')
 
 const router = express.Router();
 
-router.post('/', validateUser, async (req, res) => {
+router.post('/', middlewares.validateUser, async (req, res) => {
   try {
     const newUser = await userDb.insert(req.body)
     res.status(201).json(newUser)
@@ -15,7 +16,7 @@ router.post('/', validateUser, async (req, res) => {
 
 });
 
-router.post('/:id/posts', validateUserId, validatePost, async (req, res) => {
+router.post('/:id/posts', middlewares.validateUserId, middlewares.validatePost, async (req, res) => {
   const { id } = req.params
   try {
     const newPost = await postDb.insert({...req.body, user_id:id})
@@ -36,11 +37,11 @@ router.get('/', (req, res) => {
   })
 });
 
-router.get('/:id', validateUserId, (req, res) => {
+router.get('/:id', middlewares.validateUserId, (req, res) => {
   res.status(200).json(req.userInfo)
 });
 
-router.get('/:id/posts', validateUserId, (req, res) => {
+router.get('/:id/posts', middlewares.validateUserId, (req, res) => {
   const { id } = req.params
   userDb.getUserPosts(id)
   .then(results => {
@@ -51,7 +52,7 @@ router.get('/:id/posts', validateUserId, (req, res) => {
   })
 });
 
-router.delete('/:id', validateUserId, async (req, res) => {
+router.delete('/:id', middlewares.validateUserId, async (req, res) => {
   const { id } = req.params
   try {
     await userDb.remove(id)
@@ -62,7 +63,7 @@ router.delete('/:id', validateUserId, async (req, res) => {
   }
 });
 
-router.put('/:id', validateUserId, validateUser, (req, res) => {
+router.put('/:id', middlewares.validateUserId, middlewares.validateUser, (req, res) => {
   const { id } = req.params
   userDb.update(id, req.body)
   .then(results => {
@@ -77,45 +78,5 @@ router.put('/:id', validateUserId, validateUser, (req, res) => {
   })
 });
 
-
-//custom middleware
-
-async function validateUserId(req, res, next) {
-  const { id } = req.params
-  const user = await userDb.getById(id)
-
-  try {
-    if (!user) {
-      res.status(404).json({message:`user id:${id} not found`})
-    } else {
-      req.userInfo = user
-      next()
-    }
-  }
-  catch(error) {
-    res.status(500).json({message:error.message})
-  }
-}
-
-async function validateUser(req, res, next) {
-  console.log(req.body)
-  if(!req.body) {
-    res.status(400).json({message:"missing user data"})
-  } else if (!req.body.name) {
-    res.status(400).json({message:"missing required name field"})
-  } else {
-    next()
-  }
-}
-
-function validatePost(req, res, next) {
-  if(!req.body) {
-    res.status(400).json({message:"missing post data"})
-  } else if (!req.body.text) {
-    res.status(400).json({message:"missing required text field"})
-  } else {
-    next()
-  }
-}
 
 module.exports = router;
